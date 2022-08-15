@@ -1,0 +1,12 @@
+[package]
+name = "teamdate"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+chrono-tz = { version = "0.6", features = ["serde"] }
+clap = "3.2"
+
+[[bin]]
+name = "tdate"
+path = "src/main.rs"
