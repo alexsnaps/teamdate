@@ -1,0 +1,11 @@
+[[teams.wcgw]]
+name = "Alex"
+location = "America/Montreal"
+
+[[teams.wcgw]]
+name = "John Doe"
+location = "Europe/Dublin"
+
+[[teams.managers]]
+name = "John Doe"
+location = "Europe/Dublin"
