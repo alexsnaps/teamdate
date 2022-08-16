@@ -3,6 +3,10 @@ name = "Alex"
 location = "America/Montreal"
 
 [[teams.wcgw]]
+name = "Jane Doe"
+location = "Europe/Dublin"
+
+[[teams.wcgw]]
 name = "John Doe"
 location = "Europe/Dublin"
 
