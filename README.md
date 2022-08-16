@@ -78,11 +78,7 @@ Currently, this only works with [cargo](https://doc.rust-lang.org/cargo/)
 ### Steps
 
 ```shell
-$ git clone https://github.com/alexsnaps/teamdate.git teamdate
-
-$ cd teamdate
-
-$ cargo install --path .
+$ cargo install teamdate
 ```
 
 ### Provide a config
