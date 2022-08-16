@@ -1,6 +1,6 @@
 # Teamdate
 
-Helps you keep track of time of team members across different timezones.
+Helps you keep track of time for team members across different timezones.
 
 ## Usage
 
@@ -69,6 +69,10 @@ $ cat ~/.config/teamdate/teams.toml
 [[teams.wcgw]]
 name = "Alex"
 location = "America/Montreal"
+
+[[teams.wcgw]]
+name = "Jane Doe"
+location = "Europe/Dublin"
 
 [[teams.wcgw]]
 name = "John Doe"
