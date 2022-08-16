@@ -101,22 +101,24 @@ fn main() {
     Local::now()
   };
 
-  let team = if let Some(team) = matches.value_of("TEAM") {
+  let team = if matches.is_present("ALL") {
+    None
+  } else if let Some(team) = matches.value_of("TEAM") {
     cfg.teams.get(team)
   } else {
     cfg.default_team()
   };
 
   let left_header = if location_grouping { "Location" } else { "Team member" };
-  if team.is_none() || matches.is_present("ALL") {
+  if let Some(members) = team {
+    let lines = team_to_lines(&cfg, location_grouping, date, members);
+    print_timezones(left_header, "Time", lines);
+  } else {
     for (team, members) in &cfg.teams {
       println!("\n => Team {}", team);
       let lines = team_to_lines(&cfg, location_grouping, date, members);
       print_timezones(left_header, "Time", lines);
     }
-  } else {
-    let lines = team_to_lines(&cfg, location_grouping, date, team.unwrap());
-    print_timezones(left_header, "Time", lines);
   }
 }
 
