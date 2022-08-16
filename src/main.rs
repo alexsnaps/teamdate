@@ -16,8 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-use crate::config::Config;
-use chrono::Local;
+use crate::config::{Config, Member};
+use chrono::{DateTime, Local};
 use chrono_english::{parse_date_string, Dialect};
 use std::cmp::Ordering;
 use std::collections::HashSet;
@@ -37,6 +37,7 @@ fn main() {
         .short('c')
         .long("config")
         .help("The config file to use")
+        .display_order(4)
         .takes_value(true)
         .default_value(default_config().as_str()),
     )
@@ -45,28 +46,49 @@ fn main() {
         .short('l')
         .long("by-location")
         .help("Group by locations")
+        .display_order(3)
         .takes_value(false),
     )
+    .arg(
+      clap::Arg::new("ALL")
+        .long("all")
+        .help("Print all teams")
+        .display_order(2)
+        .takes_value(false),
+    )
+    .arg(
+      clap::Arg::new("TEAM")
+        .short('t')
+        .long("team")
+        .help("Print specific team")
+        .display_order(1)
+        .conflicts_with("ALL")
+        .takes_value(true),
+    )
     .trailing_var_arg(true)
-    .arg(clap::Arg::new("DATE").multiple_occurrences(true).help("Date to parse"))
+    .arg(
+      clap::Arg::new("DATE")
+        .multiple_occurrences(true)
+        .help("Date to parse")
+        .default_value("now"),
+    )
     .get_matches();
 
-  let config_src = matches.value_of("CONFIG").unwrap();
-  let config: Config = match File::open(config_src) {
+  let cfg_src = matches.value_of("CONFIG").unwrap();
+  let cfg: Config = match File::open(cfg_src) {
     Ok(mut file) => {
       let mut data = String::with_capacity(1024);
       match file.read_to_string(&mut data) {
         Ok(_) => match toml::from_str(&data) {
           Ok(cfg) => cfg,
-          Err(err) => exit!(1, "Couldn't parse config file '{}': {}", config_src, err),
+          Err(err) => exit!(1, "Couldn't parse config file '{}': {}", cfg_src, err),
         },
-        Err(err) => exit!(1, "Couldn't read config file '{}': {}", config_src, err),
+        Err(err) => exit!(1, "Couldn't read config file '{}': {}", cfg_src, err),
       }
     },
-    Err(err) => exit!(1, "Couldn't open config file '{}': {}", config_src, err),
+    Err(err) => exit!(1, "Couldn't open config file '{}': {}", cfg_src, err),
   };
 
-  let teams = config.teams.len();
   let location_grouping = matches.is_present("LOCATIONS");
 
   let date = if let Some(date) = matches.values_of("DATE") {
@@ -79,43 +101,62 @@ fn main() {
     Local::now()
   };
 
-  for (team, members) in config.teams {
-    if teams > 1 {
+  let team = if let Some(team) = matches.value_of("TEAM") {
+    cfg.teams.get(team)
+  } else {
+    cfg.default_team()
+  };
+
+  let left_header = if location_grouping { "Location" } else { "Team member" };
+  if team.is_none() || matches.is_present("ALL") {
+    for (team, members) in &cfg.teams {
       println!("\n => Team {}", team);
+      let lines = team_to_lines(&cfg, location_grouping, date, members);
+      print_timezones(left_header, "Time", lines);
     }
-    let mut lines: Vec<(String, String)> = Vec::new();
-    if location_grouping {
-      let locations: HashSet<chrono_tz::Tz> = members.iter().map(|m| m.location).collect();
-      let mut locations: Vec<chrono_tz::Tz> = locations.into_iter().collect();
-      locations.sort_by(|a, b| {
-        let one = date.with_timezone(a);
-        let two = date.with_timezone(b);
-        match one.date_naive().cmp(&two.date_naive()) {
-          Ordering::Less => Ordering::Less,
-          Ordering::Equal => one.time().cmp(&two.time()),
-          Ordering::Greater => Ordering::Greater,
-        }
-      });
-      for location in locations {
-        lines.push((
-          location.to_string(),
-          date.with_timezone(&location).format("%a %b %d %H:%M").to_string(),
-        ));
-      }
-    } else {
-      for member in members {
-        lines.push((
-          format!("{} ({})", member.name, member.location),
-          date
-            .with_timezone(&member.location)
-            .format("%a %b %d %H:%M")
-            .to_string(),
-        ));
-      }
-    }
-    let left_header = if location_grouping { "Location" } else { "Team member" };
+  } else {
+    let lines = team_to_lines(&cfg, location_grouping, date, team.unwrap());
     print_timezones(left_header, "Time", lines);
   }
+}
+
+fn team_to_lines(
+  cfg: &Config,
+  location_grouping: bool,
+  date: DateTime<Local>,
+  members: &Vec<Member>,
+) -> Vec<(String, String)> {
+  let mut lines: Vec<(String, String)> = Vec::new();
+  if location_grouping {
+    let locations: HashSet<chrono_tz::Tz> = members.iter().map(|m| m.location).collect();
+    let mut locations: Vec<chrono_tz::Tz> = locations.into_iter().collect();
+    locations.sort_by(|a, b| {
+      let one = date.with_timezone(a);
+      let two = date.with_timezone(b);
+      match one.date_naive().cmp(&two.date_naive()) {
+        Ordering::Less => Ordering::Less,
+        Ordering::Equal => one.time().cmp(&two.time()),
+        Ordering::Greater => Ordering::Greater,
+      }
+    });
+    for location in locations {
+      lines.push((
+        location.to_string(),
+        date.with_timezone(&location).format(cfg.date_format()).to_string(),
+      ));
+    }
+  } else {
+    for member in members {
+      lines.push((
+        format!("{} ({})", member.name, member.location),
+        date
+          .with_timezone(&member.location)
+          .format(cfg.date_format())
+          .to_string(),
+      ));
+    }
+  }
+  lines
 }
 
 fn full_version() -> String {

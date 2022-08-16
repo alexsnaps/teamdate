@@ -19,9 +19,26 @@
 use serde::Deserialize;
 use std::collections::HashMap;
 
+const DEFAULT_DATE_FMT: &str = "%a %b %d %H:%M";
+
 #[derive(Deserialize)]
 pub struct Config {
   pub teams: HashMap<String, Vec<Member>>,
+  date_format: Option<String>,
+  default_team: Option<String>,
+}
+
+impl Config {
+  pub fn date_format(&self) -> &str {
+    self.date_format.as_deref().unwrap_or(DEFAULT_DATE_FMT)
+  }
+
+  pub fn default_team(&self) -> Option<&Vec<Member>> {
+    match &self.default_team {
+      Some(name) => self.teams.get(name),
+      None => None,
+    }
+  }
 }
 
 #[derive(Deserialize)]
@@ -38,6 +55,9 @@ mod tests {
   fn reads_config_alright() {
     let config: Config = toml::from_str(
       r#"
+    date_format = "%c"
+    default_team = "wcgw"
+
     [[teams.wcgw]]
     name = "Alex"
     location = "America/Montreal"
@@ -52,6 +72,9 @@ mod tests {
     "#,
     )
     .unwrap();
+
+    assert_eq!(config.date_format(), "%c");
+    assert_eq!(config.default_team, Some("wcgw".to_owned()));
 
     assert_eq!(config.teams.len(), 2);
     assert!(config.teams.contains_key("wcgw"));
