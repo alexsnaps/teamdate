@@ -3,6 +3,8 @@
 Helps you keep track of time for team members across different timezones 
 and other daylight saving changes based off their location. Because I know I can't do it!
 
+![crates.io](https://img.shields.io/crates/v/teamdate.svg)
+
 ## Usage
 
 ### Current time for your team members
