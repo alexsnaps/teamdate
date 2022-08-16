@@ -1,6 +1,7 @@
 # Teamdate
 
-Helps you keep track of time for team members across different timezones.
+Helps you keep track of time for team members across different timezones 
+and other daylight saving changes based off their location. Because I know I can't do it!
 
 ## Usage
 
@@ -45,6 +46,29 @@ $ tdate 3 weeks 10:30am
 
 Or try `tomorrow 3pm` or `next Monday 2pm` or … try it out!
 
+### Full usage
+
+```shell
+teamdate v0.1.0 
+Alex Snaps <alex@wcgw.dev>
+Tracking team mates across timezones
+
+USAGE:
+    tdate [OPTIONS] [DATE]...
+
+ARGS:
+    <DATE>...    Date to parse [default: now]
+
+OPTIONS:
+    -t, --team <TEAM>        Print specific team
+        --all                Print all teams
+    -l, --by-location        Group by locations
+    -c, --config <CONFIG>    The config file to use [default:
+                             /Users/alexsnaps/.config/teamdate/teams.toml]
+    -h, --help               Print help information
+    -V, --version            Print version information
+```
+
 ## Installation
 
 Currently, this only works with [cargo](https://doc.rust-lang.org/cargo/)
@@ -66,6 +90,9 @@ $ cat ~/.config/teamdate/teams.toml
 ```
 
 ```toml
+default_team = "wcgw"
+date_format = "%c"
+
 [[teams.wcgw]]
 name = "Alex"
 location = "America/Montreal"
@@ -83,4 +110,7 @@ name = "John Doe"
 location = "Europe/Dublin"
 ```
 
-Where `name` is whatever you want, while `location` is a [IANA location](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
+- You can assign a `default_team` that'll be used when none is provided (see `-t` or `--all`).
+- You can specify how a date should be printed with `date_format`, see [strftime](https://docs.rs/chrono/0.4.22/chrono/format/strftime/index.html) _default:_ `"%a %b %d %H:%M"`
+- For your teams, `name` is whatever you want, while `location` is a [IANA location](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
+
