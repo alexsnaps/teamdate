@@ -16,6 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+use chrono_english::Dialect;
 use serde::Deserialize;
 use std::collections::HashMap;
 
@@ -24,6 +25,7 @@ const DEFAULT_DATE_FMT: &str = "%a %b %d %H:%M";
 #[derive(Deserialize)]
 pub struct Config {
   pub teams: HashMap<String, Vec<Member>>,
+  dialect: Option<String>,
   date_format: Option<String>,
   default_team: Option<String>,
 }
@@ -37,6 +39,19 @@ impl Config {
     match &self.default_team {
       Some(name) => self.teams.get(name),
       None => None,
+    }
+  }
+
+  pub fn dialect(&self) -> Dialect {
+    match &self.dialect {
+      None => Dialect::Us,
+      Some(str) => {
+        if str.eq_ignore_ascii_case("UK") {
+          Dialect::Uk
+        } else {
+          Dialect::Us
+        }
+      },
     }
   }
 }

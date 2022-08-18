@@ -18,7 +18,7 @@
 
 use crate::config::{Config, Member};
 use chrono::{DateTime, Local};
-use chrono_english::{parse_date_string, Dialect};
+use chrono_english::parse_date_string;
 use std::cmp::Ordering;
 use std::collections::HashSet;
 use std::fs::File;
@@ -93,7 +93,7 @@ fn main() {
 
   let date = if let Some(date) = matches.values_of("DATE") {
     let date_string = date.collect::<Vec<&str>>().join(" ");
-    match parse_date_string(&date_string, Local::now(), Dialect::Us) {
+    match parse_date_string(&date_string, Local::now(), cfg.dialect()) {
       Ok(date) => date,
       Err(err) => exit!(2, "Couldn't parse date '{}': {}", date_string, err),
     }
