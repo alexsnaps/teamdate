@@ -65,6 +65,7 @@ pub struct Member {
 #[cfg(test)]
 mod tests {
   use crate::config::Config;
+  use chrono_english::Dialect;
 
   #[test]
   fn reads_config_alright() {
@@ -72,6 +73,7 @@ mod tests {
       r#"
     date_format = "%c"
     default_team = "wcgw"
+    dialect = "uk"
 
     [[teams.wcgw]]
     name = "Alex"
@@ -90,6 +92,12 @@ mod tests {
 
     assert_eq!(config.date_format(), "%c");
     assert_eq!(config.default_team, Some("wcgw".to_owned()));
+
+    assert_eq!(config.dialect, Some("uk".to_owned()));
+    match config.dialect() {
+      Dialect::Uk => assert!(true),
+      Dialect::Us => assert!(false),
+    }
 
     assert_eq!(config.teams.len(), 2);
     assert!(config.teams.contains_key("wcgw"));
