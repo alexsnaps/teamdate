@@ -11,14 +11,18 @@ env:
 
 jobs:
   build:
-
+    name: Build and verify project
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v3
-    - name: Build
-      run: cargo build --verbose
-    - name: Check
+    - name: Formatting
       run: cargo fmt --all -- --check && cargo clippy -- -D warnings
-    - name: Run tests
+    - name: Build
+      if: ${{ always() }}
+      run: cargo build --verbose
+    - name: Clippy
+      if: ${{ always() }}
+      run: cargo clippy -- -D warnings
+    - name: Tests
       run: cargo test --verbose
