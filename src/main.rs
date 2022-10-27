@@ -19,27 +19,35 @@
 use crate::config::{Config, Member};
 use chrono::{DateTime, Local};
 use chrono_english::parse_date_string;
+use clap::ArgAction;
 use std::cmp::Ordering;
 use std::collections::HashSet;
 use std::fs::File;
 use std::io::Read;
 use wyz::exit;
 
+#[macro_use]
+extern crate lazy_static;
+
 mod config;
 
+lazy_static! {
+  static ref CFG: String = default_config();
+  static ref VERSION: String = full_version();
+}
+
 fn main() {
-  let matches = clap::App::new("teamdate")
+  let command = clap::Command::new("teamdate")
     .about("Tracking team mates across timezones")
     .author("Alex Snaps <alex@wcgw.dev>")
-    .version(full_version().as_str())
+    .version(&VERSION.as_str())
     .arg(
       clap::Arg::new("CONFIG")
         .short('c')
         .long("config")
         .help("The config file to use")
         .display_order(4)
-        .takes_value(true)
-        .default_value(default_config().as_str()),
+        .default_value(&CFG.as_str()),
     )
     .arg(
       clap::Arg::new("LOCATIONS")
@@ -47,14 +55,14 @@ fn main() {
         .long("by-location")
         .help("Group by locations")
         .display_order(3)
-        .takes_value(false),
+        .action(ArgAction::SetTrue),
     )
     .arg(
       clap::Arg::new("ALL")
         .long("all")
         .help("Print all teams")
         .display_order(2)
-        .takes_value(false),
+        .action(ArgAction::SetTrue),
     )
     .arg(
       clap::Arg::new("TEAM")
@@ -62,19 +70,18 @@ fn main() {
         .long("team")
         .help("Print specific team")
         .display_order(1)
-        .conflicts_with("ALL")
-        .takes_value(true),
+        .conflicts_with("ALL"),
     )
     .trailing_var_arg(true)
     .arg(
       clap::Arg::new("DATE")
-        .multiple_occurrences(true)
+        .num_args(0..)
         .help("Date to parse")
         .default_value("now"),
-    )
-    .get_matches();
+    );
+  let matches = command.get_matches();
 
-  let cfg_src = matches.value_of("CONFIG").unwrap();
+  let cfg_src: &String = matches.get_one("CONFIG").unwrap();
   let cfg: Config = match File::open(cfg_src) {
     Ok(mut file) => {
       let mut data = String::with_capacity(1024);
@@ -89,10 +96,10 @@ fn main() {
     Err(err) => exit!(1, "Couldn't open config file '{}': {}", cfg_src, err),
   };
 
-  let location_grouping = matches.is_present("LOCATIONS");
+  let location_grouping = matches.contains_id("LOCATIONS");
 
-  let date = if let Some(date) = matches.values_of("DATE") {
-    let date_string = date.collect::<Vec<&str>>().join(" ");
+  let date = if let Some(date) = matches.get_many::<String>("DATE") {
+    let date_string = date.cloned().collect::<String>();
     match parse_date_string(&date_string, Local::now(), cfg.dialect()) {
       Ok(date) => date,
       Err(err) => exit!(2, "Couldn't parse date '{}': {}", date_string, err),
@@ -101,9 +108,9 @@ fn main() {
     Local::now()
   };
 
-  let team = if matches.is_present("ALL") {
+  let team = if matches.contains_id("ALL") {
     None
-  } else if let Some(team) = matches.value_of("TEAM") {
+  } else if let Some(team) = matches.get_one::<String>("TEAM") {
     cfg.teams.get(team)
   } else {
     cfg.default_team()
