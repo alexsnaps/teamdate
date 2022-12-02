@@ -40,14 +40,14 @@ fn main() {
   let command = clap::Command::new("teamdate")
     .about("Tracking team mates across timezones")
     .author("Alex Snaps <alex@wcgw.dev>")
-    .version(&VERSION.as_str())
+    .version(VERSION.as_str())
     .arg(
       clap::Arg::new("CONFIG")
         .short('c')
         .long("config")
         .help("The config file to use")
         .display_order(4)
-        .default_value(&CFG.as_str()),
+        .default_value(CFG.as_str()),
     )
     .arg(
       clap::Arg::new("LOCATIONS")

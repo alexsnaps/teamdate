@@ -4,7 +4,7 @@ fn main() {
   let env = "TDATE_GIT_HASH";
 
   let git_hash = Command::new("git")
-    .args(&["rev-parse", "HEAD"])
+    .args(["rev-parse", "HEAD"])
     .output()
     .ok()
     .filter(|output| output.status.success())
@@ -13,7 +13,7 @@ fn main() {
 
   if let Some(hash) = git_hash {
     let dirty = Command::new("git")
-      .args(&["diff", "--stat"])
+      .args(["diff", "--stat"])
       .output()
       .ok()
       .filter(|output| output.status.success())
