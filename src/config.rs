@@ -1,5 +1,5 @@
 /*
- * timedate - tracking team mates across timezones
+ * teamdate - tracking team mates across timezones
  * Copyright (C) 2022  Alex Snaps <alex@wcgw.dev>
  *
  * This program is free software: you can redistribute it and/or modify
