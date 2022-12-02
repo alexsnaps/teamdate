@@ -17,7 +17,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Formatting
-      run: cargo fmt --all -- --check && cargo clippy -- -D warnings
+      run: cargo fmt --all -- --check
     - name: Build
       if: ${{ always() }}
       run: cargo build --verbose
