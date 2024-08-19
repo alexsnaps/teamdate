@@ -96,7 +96,7 @@ fn main() {
     Err(err) => exit!(1, "Couldn't open config file '{}': {}", cfg_src, err),
   };
 
-  let location_grouping = matches.contains_id("LOCATIONS");
+  let location_grouping = matches.get_flag("LOCATIONS");
 
   let date = if let Some(date) = matches.get_many::<String>("DATE") {
     let date_string = date.cloned().collect::<String>();
@@ -108,7 +108,8 @@ fn main() {
     Local::now()
   };
 
-  let team = if matches.contains_id("ALL") {
+  let team = if matches.get_flag("ALL") {
+    println!("We are finding ALL?");
     None
   } else if let Some(team) = matches.get_one::<String>("TEAM") {
     cfg.teams.get(team)
