@@ -37,10 +37,7 @@ impl Config {
 
   pub fn default_team(&self) -> Option<(&str, &Vec<Member>)> {
     match &self.default_team {
-      Some(name) => match self.teams.get(name) {
-        Some(members) => Some((name, members)),
-        None => None,
-      },
+      Some(name) => self.teams.get(name).map(|members| (name.as_str(), members)),
       None => None,
     }
   }
