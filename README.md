@@ -12,7 +12,7 @@ and other daylight saving changes based off their location. Because I know I can
 ```shell
 $ tdate 
 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━┯━━━━━━━━━━━━━━━━━━┓
-┃       Team member        │       Time       ┃
+┃        Team wcgw         │       Time       ┃
 ┠──────────────────────────┼──────────────────┨
 ┃  Alex (America/Montreal) │ Mon Aug 15 21:18 ┃
 ┃ Jane Doe (Europe/Dublin) │ Tue Aug 16 02:18 ┃
@@ -38,7 +38,7 @@ $ tdate -l Aug 28 3pm
 ```shell
 $ tdate 3 weeks 10:30am
 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━┯━━━━━━━━━━━━━━━━━━┓
-┃       Team member        │       Time       ┃
+┃        Team wcgw         │       Time       ┃
 ┠──────────────────────────┼──────────────────┨
 ┃  Alex (America/Montreal) │ Mon Sep 05 10:30 ┃
 ┃ Jane Doe (Europe/Dublin) │ Mon Sep 05 15:30 ┃
