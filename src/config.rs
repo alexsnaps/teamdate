@@ -35,9 +35,12 @@ impl Config {
     self.date_format.as_deref().unwrap_or(DEFAULT_DATE_FMT)
   }
 
-  pub fn default_team(&self) -> Option<&Vec<Member>> {
+  pub fn default_team(&self) -> Option<(&str, &Vec<Member>)> {
     match &self.default_team {
-      Some(name) => self.teams.get(name),
+      Some(name) => match self.teams.get(name) {
+        Some(members) => Some((name, members)),
+        None => None,
+      },
       None => None,
     }
   }

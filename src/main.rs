@@ -108,24 +108,26 @@ fn main() {
     Local::now()
   };
 
-  let team = if matches.get_flag("ALL") {
-    println!("We are finding ALL?");
-    None
+  let (name, team) = if matches.get_flag("ALL") {
+    (None, None)
   } else if let Some(team) = matches.get_one::<String>("TEAM") {
-    cfg.teams.get(team)
+    match cfg.teams.get(team) {
+      None => (Some(team.as_str()), None),
+      Some(members) => (Some(team.as_str()), Some(members))
+    }
   } else {
-    cfg.default_team()
+    cfg.default_team().map_or_else(|| (None, None), |(team, members)| (Some(team), Some(members)))
   };
 
-  let left_header = if location_grouping { "Location" } else { "Team member" };
+  let left_header = if location_grouping { "Location".to_owned() } else { format!("Team {}", name.unwrap_or("member")) };
   if let Some(members) = team {
     let lines = team_to_lines(&cfg, location_grouping, date, members);
-    print_timezones(left_header, "Time", lines);
+    print_timezones(left_header.as_str(), "Time", lines);
   } else {
     for (team, members) in &cfg.teams {
       println!("\n => Team {}", team);
       let lines = team_to_lines(&cfg, location_grouping, date, members);
-      print_timezones(left_header, "Time", lines);
+      print_timezones(left_header.as_str(), "Time", lines);
     }
   }
 }
