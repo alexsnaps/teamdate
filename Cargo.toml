@@ -1,6 +1,6 @@
 [package]
 name = "teamdate"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 license = "GPL-3.0"
 homepage = "https://github.com/alexsnaps/teamdate"
@@ -8,14 +8,14 @@ description = "Helps you keep track of time for team members across different ti
 
 [dependencies]
 chrono = { version = "0.4" }
-chrono-tz = { version = "0.6", features = ["serde"] }
+chrono-tz = { version = "0.9", features = ["serde"] }
 chrono-english = { version = "0.1" }
-lazy_static = "1.4.0"
-clap = "4.0"
-dirs = "4.0"
+lazy_static = "1.5.0"
+clap = "4.5"
+dirs = "5.0"
 serde = { version = "1.0", features = ["derive"] }
-toml = "0.5"
-wyz = "0.5"
+toml = "0.8"
+wyz = "0.6"
 
 [[bin]]
 name = "tdate"
