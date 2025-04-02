@@ -46,8 +46,16 @@ fn main() {
         .short('c')
         .long("config")
         .help("The config file to use")
-        .display_order(4)
+        .display_order(5)
         .default_value(CFG.as_str()),
+    )
+    .arg(
+      clap::Arg::new("TIMEZONES")
+        .short('z')
+        .long("by-timezones")
+        .help("Group by timezones")
+        .display_order(4)
+        .action(ArgAction::SetTrue),
     )
     .arg(
       clap::Arg::new("LOCATIONS")
@@ -96,7 +104,13 @@ fn main() {
     Err(err) => exit!(1, "Couldn't open config file '{}': {}", cfg_src, err),
   };
 
-  let location_grouping = matches.get_flag("LOCATIONS");
+  let grouping = if matches.get_flag("TIMEZONES") {
+    Grouping::Timezone
+  } else if matches.get_flag("LOCATIONS") {
+    Grouping::Location
+  } else {
+    Grouping::Team
+  };
 
   let date = if let Some(date) = matches.get_many::<String>("DATE") {
     let date_string = date.cloned().collect::<String>();
@@ -121,58 +135,73 @@ fn main() {
       .map_or_else(|| (None, None), |(team, members)| (Some(team), Some(members)))
   };
 
-  let left_header = if location_grouping {
-    "Location".to_owned()
-  } else {
-    format!("Team {}", name.unwrap_or("member"))
+  let left_header = match grouping {
+    Grouping::Team => format!("Team {}", name.unwrap_or("member")),
+    Grouping::Location => "Location".to_owned(),
+    Grouping::Timezone => "Timezone".to_owned(),
   };
+
   if let Some(members) = team {
-    let lines = team_to_lines(&cfg, location_grouping, date, members);
+    let lines = team_to_lines(&cfg, grouping, date, members);
     print_timezones(left_header.as_str(), "Time", lines);
   } else {
     for (team, members) in &cfg.teams {
       println!("\n => Team {}", team);
-      let lines = team_to_lines(&cfg, location_grouping, date, members);
+      let lines = team_to_lines(&cfg, grouping.clone(), date, members);
       print_timezones(left_header.as_str(), "Time", lines);
     }
   }
 }
 
+#[derive(Clone)]
+enum Grouping {
+  Team,
+  Location,
+  Timezone,
+}
+
 fn team_to_lines(
   cfg: &Config,
-  location_grouping: bool,
+  grouping: Grouping,
   date: DateTime<Local>,
   members: &Vec<Member>,
 ) -> Vec<(String, String)> {
   let mut lines: Vec<(String, String)> = Vec::new();
-  if location_grouping {
-    let locations: HashSet<chrono_tz::Tz> = members.iter().map(|m| m.location).collect();
-    let mut locations: Vec<chrono_tz::Tz> = locations.into_iter().collect();
-    locations.sort_by(|a, b| {
-      let one = date.with_timezone(a);
-      let two = date.with_timezone(b);
-      match one.date_naive().cmp(&two.date_naive()) {
-        Ordering::Less => Ordering::Less,
-        Ordering::Equal => one.time().cmp(&two.time()),
-        Ordering::Greater => Ordering::Greater,
+  match grouping {
+    Grouping::Team => {
+      for member in members {
+        lines.push((
+          format!("{} ({})", member.name, member.location),
+          date
+            .with_timezone(&member.location)
+            .format(cfg.date_format())
+            .to_string(),
+        ));
       }
-    });
-    for location in locations {
-      lines.push((
-        location.to_string(),
-        date.with_timezone(&location).format(cfg.date_format()).to_string(),
-      ));
-    }
-  } else {
-    for member in members {
-      lines.push((
-        format!("{} ({})", member.name, member.location),
-        date
-          .with_timezone(&member.location)
-          .format(cfg.date_format())
-          .to_string(),
-      ));
-    }
+    },
+    Grouping::Location | Grouping::Timezone => {
+      let locations: HashSet<chrono_tz::Tz> = members.iter().map(|m| m.location).collect();
+      let mut locations: Vec<chrono_tz::Tz> = locations.into_iter().collect();
+      locations.sort_by(|a, b| {
+        let one = date.with_timezone(a);
+        let two = date.with_timezone(b);
+        match one.date_naive().cmp(&two.date_naive()) {
+          Ordering::Less => Ordering::Less,
+          Ordering::Equal => one.time().cmp(&two.time()),
+          Ordering::Greater => Ordering::Greater,
+        }
+      });
+      for location in locations {
+        let r = match grouping {
+          Grouping::Timezone => {
+            let t = date.with_timezone(&location);
+            t.format("%Z").to_string()
+          },
+          _ => location.to_string(),
+        };
+        lines.push((r, date.with_timezone(&location).format(cfg.date_format()).to_string()));
+      }
+    },
   }
   lines
 }
