@@ -113,7 +113,7 @@ fn main() {
   };
 
   let date = if let Some(date) = matches.get_many::<String>("DATE") {
-    let date_string = date.cloned().collect::<String>();
+    let date_string = date.map(|s| s.clone() + " ").collect::<String>();
     match parse_date_string(&date_string, Local::now(), cfg.dialect()) {
       Ok(date) => date,
       Err(err) => exit!(2, "Couldn't parse date '{}': {}", date_string, err),
