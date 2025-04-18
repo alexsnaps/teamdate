@@ -26,16 +26,15 @@ use std::fs::File;
 use std::io::Read;
 use wyz::exit;
 
-#[macro_use]
-extern crate lazy_static;
-
 mod config;
 
-lazy_static! {
-  static ref CFG: String = default_config();
-}
-
 fn main() {
+  let cfg: &'static str = Box::leak(Box::new(format!(
+    "{}/.config/teamdate/teams.toml",
+    dirs::home_dir().unwrap().to_str().unwrap()
+  )))
+  .as_str();
+
   let command = clap::Command::new("teamdate")
     .about("Tracking team mates across timezones")
     .author("Alex Snaps <alex@wcgw.dev>")
@@ -52,7 +51,7 @@ fn main() {
         .long("config")
         .help("The config file to use")
         .display_order(5)
-        .default_value(CFG.as_str()),
+        .default_value(cfg),
     )
     .arg(
       clap::Arg::new("TIMEZONES")
@@ -209,14 +208,6 @@ fn team_to_lines(
     },
   }
   lines
-}
-
-fn default_config() -> String {
-  // todo probably not best here
-  format!(
-    "{}/.config/teamdate/teams.toml",
-    dirs::home_dir().unwrap().to_str().unwrap()
-  )
 }
 
 fn print_timezones(h1: &str, h2: &str, lines: Vec<(String, String)>) {
