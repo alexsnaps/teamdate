@@ -33,14 +33,19 @@ mod config;
 
 lazy_static! {
   static ref CFG: String = default_config();
-  static ref VERSION: String = full_version();
 }
 
 fn main() {
   let command = clap::Command::new("teamdate")
     .about("Tracking team mates across timezones")
     .author("Alex Snaps <alex@wcgw.dev>")
-    .version(VERSION.as_str())
+    .version(concat!(
+      "v",
+      env!("CARGO_PKG_VERSION"),
+      " (",
+      env!("TDATE_GIT_HASH"),
+      ")"
+    ))
     .arg(
       clap::Arg::new("CONFIG")
         .short('c')
@@ -204,10 +209,6 @@ fn team_to_lines(
     },
   }
   lines
-}
-
-fn full_version() -> String {
-  format!("v{} ({})", env!("CARGO_PKG_VERSION"), env!("TDATE_GIT_HASH"),)
 }
 
 fn default_config() -> String {
